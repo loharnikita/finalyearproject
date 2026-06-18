@@ -9,7 +9,7 @@ const PreviousNotesButton = () => {
 
       onClick={() => window.location.href="/notes"}
 
-      className="flex items-center gap-4 rounded-lg bg-blue-600 p-4 text-left"
+      className="flex items-center gap-4 rounded-lg  p-4 text-left"
 
     >
 
