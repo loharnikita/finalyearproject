@@ -20,6 +20,8 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "date-fns": "^3.4.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^0.350.0",
     "mongoose": "^9.7.1",
     "next": "14.1.3",

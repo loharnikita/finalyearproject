@@ -1,116 +1,388 @@
-const AttendanceTable =()=>{
+'use client';
+
+import { useEffect, useState } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 
-const users=[
+const AttendanceTable = () => {
 
-{
-name:"Rahul",
-join:"10:00 AM",
-leave:"10:45 AM",
-duration:"45 min"
-},
 
-{
-name:"Priya",
-join:"10:05 AM",
-leave:"10:45 AM",
-duration:"40 min"
-},
+const [users,setUsers] = useState<any[]>([]);
 
-{
-name:"Amit",
-join:"10:10 AM",
-leave:"10:30 AM",
-duration:"20 min"
+
+
+useEffect(()=>{
+
+
+const getAttendance = async()=>{
+
+
+const res = await fetch("/api/attendance");
+
+
+const data = await res.json();
+
+
+if(Array.isArray(data)){
+
+setUsers(data);
+
 }
 
-];
+
+};
 
 
 
-return(
-
-<div>
+getAttendance();
 
 
-<div className="grid gap-5 md:grid-cols-4">
+
+},[]);
 
 
-<div className="rounded-xl bg-gray-900 p-5">
+
+
+
+
+
+const exportPDF = () => {
+
+
+const doc = new jsPDF();
+
+
+
+doc.text(
+"MeetVerse - Attendance Report",
+14,
+20
+);
+
+
+
+autoTable(doc,{
+
+startY:30,
+
+
+head:[
+
+[
+"Participant",
+"Join Time",
+"Leave Time",
+"Duration"
+]
+
+],
+
+
+
+body:
+
+users.map((user)=>(
+
+
+[
+
+user.name,
+
+
+new Date(user.joinTime)
+.toLocaleTimeString(),
+
+
+user.leaveTime
+
+?
+
+new Date(user.leaveTime)
+.toLocaleTimeString()
+
+:
+
+"Still Joined",
+
+
+
+user.duration || "-"
+
+
+]
+
+
+))
+
+
+});
+
+
+
+doc.save(
+"MeetVerse_Attendance_Report.pdf"
+);
+
+
+
+};
+
+
+
+
+
+
+return (
+
+
+<div className="space-y-8">
+
+
+
+
+
+<div className="grid gap-6 md:grid-cols-4">
+
+
+
+
+
+<div className="rounded-2xl bg-dark-2 p-6">
+
+<p className="text-gray-400">
 Total Participants
-<h2 className="text-3xl font-bold">
-15
+</p>
+
+
+<h2 className="text-4xl font-bold">
+
+{users.length}
+
 </h2>
+
+
 </div>
 
 
-<div className="rounded-xl bg-gray-900 p-5">
+
+
+
+
+<div className="rounded-2xl bg-dark-2 p-6">
+
+<p className="text-gray-400">
 Present
-<h2 className="text-3xl font-bold">
-13
+</p>
+
+
+<h2 className="text-4xl font-bold">
+
+{
+users.filter(
+(u)=>!u.leaveTime
+).length
+}
+
 </h2>
+
+
 </div>
 
 
 
-<div className="rounded-xl bg-gray-900 p-5">
+
+
+
+
+<div className="rounded-2xl bg-dark-2 p-6">
+
+<p className="text-gray-400">
 Left Early
-<h2 className="text-3xl font-bold">
-2
+</p>
+
+
+<h2 className="text-4xl font-bold">
+
+{
+users.filter(
+(u)=>u.leaveTime
+).length
+}
+
 </h2>
+
+
 </div>
 
 
 
-<div className="rounded-xl bg-gray-900 p-5">
-Duration
-<h2 className="text-3xl font-bold">
-45 min
+
+
+
+
+<div className="rounded-2xl bg-dark-2 p-6">
+
+<p className="text-gray-400">
+Meeting Duration
+</p>
+
+
+<h2 className="text-4xl font-bold">
+
+Calculated
+
 </h2>
+
+
 </div>
 
 
 
+
+
+
 </div>
 
 
 
-<table className="mt-10 w-full">
 
 
-<thead>
+
+
+
+<div className="overflow-hidden rounded-2xl bg-dark-2">
+
+
+<table className="w-full">
+
+
+<thead className="bg-gray-800">
+
 
 <tr>
 
-<th>Name</th>
-<th>Join</th>
-<th>Leave</th>
-<th>Duration</th>
+
+<th className="p-5 text-left">
+Participant
+</th>
+
+
+
+<th className="p-5">
+Join Time
+</th>
+
+
+
+<th className="p-5">
+Leave Time
+</th>
+
+
+
+<th className="p-5">
+Duration
+</th>
+
 
 
 </tr>
 
+
 </thead>
+
+
 
 
 
 <tbody>
 
 
+
 {
-users.map((u)=>(
+
+users.map((user)=>(
 
 
-<tr key={u.name}>
+<tr
+
+key={user._id}
+
+className="border-t border-gray-700"
+
+>
 
 
-<td>{u.name}</td>
+<td className="p-5 font-semibold">
 
-<td>{u.join}</td>
+{user.name}
 
-<td>{u.leave}</td>
+</td>
 
-<td>{u.duration}</td>
+
+
+
+<td className="p-5 text-center">
+
+{
+
+new Date(user.joinTime)
+.toLocaleTimeString()
+
+}
+
+</td>
+
+
+
+
+
+<td className="p-5 text-center">
+
+
+{
+
+user.leaveTime
+
+?
+
+new Date(user.leaveTime)
+.toLocaleTimeString()
+
+:
+
+"Still Joined"
+
+
+}
+
+
+</td>
+
+
+
+
+
+<td className="p-5 text-center">
+
+
+<span className="rounded-full bg-blue-600 px-4 py-1">
+
+
+{
+
+user.duration || "Running"
+
+}
+
+
+</span>
+
+
+</td>
+
+
 
 
 </tr>
@@ -118,14 +390,42 @@ users.map((u)=>(
 
 ))
 
+
 }
+
+
 
 
 
 </tbody>
 
 
+
 </table>
+
+
+
+</div>
+
+
+
+
+
+
+<button
+
+onClick={exportPDF}
+
+className="rounded-lg bg-green-600 px-6 py-3 font-semibold"
+
+>
+
+📄 Export PDF
+
+</button>
+
+
+
 
 
 </div>
@@ -133,8 +433,8 @@ users.map((u)=>(
 
 )
 
-
 }
+
 
 
 export default AttendanceTable;
