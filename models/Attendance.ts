@@ -4,44 +4,38 @@ import mongoose from "mongoose";
 const AttendanceSchema = new mongoose.Schema({
 
 meetingId:{
-    type:String,
-    required:true
+type:String,
+required:true
 },
 
 
 userId:{
-    type:String,
-    required:true
+type:String,
+required:true
 },
 
 
 name:{
-    type:String,
-    required:true
+type:String,
+required:true
 },
 
 
 joinTime:{
-    type:Date,
-    default:Date.now
+type:Date,
+default:Date.now
 },
 
 
 leaveTime:{
-    type:Date,
-    default:null
+type:Date,
+default:null
 },
 
 
 duration:{
-    type:String,
-    default:"Running"
-},
-
-
-status:{
-    type:String,
-    default:"joined"
+type:String,
+default:"Running"
 }
 
 
@@ -51,5 +45,23 @@ timestamps:true
 });
 
 
+
+// prevent duplicate user in same meeting
+
+AttendanceSchema.index(
+{
+meetingId:1,
+userId:1
+},
+{
+unique:true
+}
+);
+
+
+
 export default mongoose.models.Attendance ||
-mongoose.model("Attendance", AttendanceSchema);
+mongoose.model(
+"Attendance",
+AttendanceSchema
+);

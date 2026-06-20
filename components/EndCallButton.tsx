@@ -1,65 +1,64 @@
 'use client';
 
-import { useCall } from '@stream-io/video-react-sdk';
-import { Button } from './ui/button';
-import { useRouter } from 'next/navigation';
+
+import { useCall } from "@stream-io/video-react-sdk";
+
+import { Button } from "./ui/button";
+
 
 
 const EndCallButton = ({
-  onLeave
+handleLeave
 }:{
-  onLeave:()=>Promise<void>
+
+handleLeave:()=>void;
+
 })=>{
+
 
 
 const call = useCall();
 
-const router = useRouter();
 
 
-
-const endCall = async()=>{
+const endMeeting = async()=>{
 
 
 try{
 
 
-// update attendance first
-await onLeave();
+await handleLeave();
 
-
-// end stream meeting
-await call?.endCall();
-
-
-// go home
-router.push("/");
 
 
 }
+
 catch(error){
 
-console.log("End call error:",error);
+console.log(error);
 
 }
+
 
 
 };
 
 
 
-
 return(
+
 
 <Button
 
-onClick={endCall}
+onClick={endMeeting}
 
 className="bg-red-500"
 
 >
 
+
 End call for everyone
+
 
 </Button>
 
@@ -67,7 +66,9 @@ End call for everyone
 );
 
 
+
 };
+
 
 
 export default EndCallButton;

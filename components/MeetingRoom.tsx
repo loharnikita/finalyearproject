@@ -64,6 +64,8 @@ const attendanceId = useRef<string | null>(null);
 
 const joinTime = useRef<Date | null>(null);
 
+const attendanceSaved = useRef(false);
+
 
 
 const [layout,setLayout] =
@@ -122,7 +124,9 @@ call.state.localParticipant;
 if(!participant) return;
 
 
+if(attendanceSaved.current) return;
 
+attendanceSaved.current = true;
 const res = await fetch(
 "/api/attendance/save",
 {
@@ -205,12 +209,10 @@ saveJoin();
 const handleLeave = async()=>{
 
 
-if(!attendanceId.current){
+try{
 
-console.log("Attendance id missing");
-return;
 
-}
+if(attendanceId.current){
 
 
 
@@ -225,25 +227,30 @@ let duration = "0 min";
 if(joinTime.current){
 
 
-const diff =
-Math.floor(
-(leaveTime.getTime() -
-joinTime.current.getTime()) / 60000
+const diff = Math.floor(
+(
+leaveTime.getTime()
+-
+joinTime.current.getTime()
+)
+/60000
 );
 
 
+
 duration = `${diff} min`;
+
+
 
 }
 
 
 
-
-await fetch("/api/attendance/update",{
-
+await fetch(
+"/api/attendance/update",
+{
 
 method:"PUT",
-
 
 headers:{
 
@@ -256,16 +263,61 @@ body:JSON.stringify({
 
 id:attendanceId.current,
 
-duration:duration
+duration:duration,
+
+leaveTime:leaveTime
 
 })
 
-
-});
-
+}
 
 
-console.log("Attendance updated");
+
+);
+
+
+
+console.log(
+"Attendance saved"
+);
+
+
+
+}
+
+
+
+
+
+// end meeting after saving
+
+if(call){
+
+
+await call.endCall();
+
+
+}
+
+
+
+
+router.push("/");
+
+
+
+}
+
+catch(error){
+
+
+console.log(
+"Leave error",
+error
+);
+
+
+}
 
 
 
@@ -539,11 +591,9 @@ onClick={()=>setShowParticipants(!showParticipants)}
 
 
 {
-
 !isPersonalRoom &&
 
-<EndCallButton onLeave={handleLeave}/>
-
+<EndCallButton handleLeave={handleLeave}/>
 
 }
 
