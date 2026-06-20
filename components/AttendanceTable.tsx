@@ -18,17 +18,16 @@ useEffect(()=>{
 const getAttendance = async()=>{
 
 
-const res = await fetch("/api/attendance");
+const res = await fetch(
+"/api/attendance"
+);
 
 
 const data = await res.json();
 
 
-if(Array.isArray(data)){
-
 setUsers(data);
 
-}
 
 
 };
@@ -38,7 +37,6 @@ setUsers(data);
 getAttendance();
 
 
-
 },[]);
 
 
@@ -46,8 +44,30 @@ getAttendance();
 
 
 
+const formatTime = (time:string)=>{
 
-const exportPDF = () => {
+
+if(!time) return "Still Joined";
+
+
+return new Date(time)
+.toLocaleTimeString(
+[],
+{
+hour:"2-digit",
+minute:"2-digit",
+second:"2-digit"
+}
+);
+
+
+};
+
+
+
+
+
+const exportPDF =()=>{
 
 
 const doc = new jsPDF();
@@ -55,7 +75,7 @@ const doc = new jsPDF();
 
 
 doc.text(
-"MeetVerse - Attendance Report",
+"MeetVerse Attendance Report",
 14,
 20
 );
@@ -64,13 +84,14 @@ doc.text(
 
 autoTable(doc,{
 
+
 startY:30,
 
 
 head:[
 
 [
-"Participant",
+"Name",
 "Join Time",
 "Leave Time",
 "Duration"
@@ -84,31 +105,15 @@ body:
 
 users.map((user)=>(
 
-
 [
 
 user.name,
 
+formatTime(user.joinTime),
 
-new Date(user.joinTime)
-.toLocaleTimeString(),
+formatTime(user.leaveTime),
 
-
-user.leaveTime
-
-?
-
-new Date(user.leaveTime)
-.toLocaleTimeString()
-
-:
-
-"Still Joined",
-
-
-
-user.duration || "-"
-
+user.duration || "Running"
 
 ]
 
@@ -121,9 +126,8 @@ user.duration || "-"
 
 
 doc.save(
-"MeetVerse_Attendance_Report.pdf"
+"Attendance_Report.pdf"
 );
-
 
 
 };
@@ -133,140 +137,43 @@ doc.save(
 
 
 
+
 return (
 
 
-<div className="space-y-8">
+<div className="p-8 text-white">
 
 
 
+<h1 className="text-4xl font-bold mb-8">
 
 
-<div className="grid gap-6 md:grid-cols-4">
 
+</h1>
 
 
 
 
-<div className="rounded-2xl bg-dark-2 p-6">
 
-<p className="text-gray-400">
-Total Participants
-</p>
 
 
-<h2 className="text-4xl font-bold">
+<div className="rounded-2xl bg-dark-2 overflow-hidden shadow-xl">
 
-{users.length}
-
-</h2>
-
-
-</div>
-
-
-
-
-
-
-<div className="rounded-2xl bg-dark-2 p-6">
-
-<p className="text-gray-400">
-Present
-</p>
-
-
-<h2 className="text-4xl font-bold">
-
-{
-users.filter(
-(u)=>!u.leaveTime
-).length
-}
-
-</h2>
-
-
-</div>
-
-
-
-
-
-
-
-<div className="rounded-2xl bg-dark-2 p-6">
-
-<p className="text-gray-400">
-Left Early
-</p>
-
-
-<h2 className="text-4xl font-bold">
-
-{
-users.filter(
-(u)=>u.leaveTime
-).length
-}
-
-</h2>
-
-
-</div>
-
-
-
-
-
-
-
-<div className="rounded-2xl bg-dark-2 p-6">
-
-<p className="text-gray-400">
-Meeting Duration
-</p>
-
-
-<h2 className="text-4xl font-bold">
-
-Calculated
-
-</h2>
-
-
-</div>
-
-
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-<div className="overflow-hidden rounded-2xl bg-dark-2">
 
 
 <table className="w-full">
 
 
-<thead className="bg-gray-800">
+
+<thead className="bg-[#1f2937]">
 
 
 <tr>
 
 
 <th className="p-5 text-left">
-Participant
+Name
 </th>
-
 
 
 <th className="p-5">
@@ -274,17 +181,14 @@ Join Time
 </th>
 
 
-
 <th className="p-5">
 Leave Time
 </th>
 
 
-
 <th className="p-5">
 Duration
 </th>
-
 
 
 </tr>
@@ -296,8 +200,9 @@ Duration
 
 
 
-<tbody>
 
+
+<tbody>
 
 
 {
@@ -309,9 +214,10 @@ users.map((user)=>(
 
 key={user._id}
 
-className="border-t border-gray-700"
+className="border-t border-gray-700 hover:bg-gray-800 transition"
 
 >
+
 
 
 <td className="p-5 font-semibold">
@@ -323,14 +229,12 @@ className="border-t border-gray-700"
 
 
 
+
 <td className="p-5 text-center">
 
-{
 
-new Date(user.joinTime)
-.toLocaleTimeString()
+{formatTime(user.joinTime)}
 
-}
 
 </td>
 
@@ -347,13 +251,15 @@ user.leaveTime
 
 ?
 
-new Date(user.leaveTime)
-.toLocaleTimeString()
+formatTime(user.leaveTime)
 
 :
 
-"Still Joined"
+<span className="text-yellow-400">
 
+Still Joined
+
+</span>
 
 }
 
@@ -364,15 +270,42 @@ new Date(user.leaveTime)
 
 
 
+
+
 <td className="p-5 text-center">
 
 
-<span className="rounded-full bg-blue-600 px-4 py-1">
+<span
+
+className={
+
+`
+px-4 py-2 rounded-full text-sm font-semibold
+
+${user.duration
+
+?
+
+"bg-green-600"
+
+:
+
+"bg-blue-600"
+
+}
+
+`
+
+}
+
+>
 
 
 {
 
-user.duration || "Running"
+user.duration ||
+
+"Running"
 
 }
 
@@ -386,6 +319,7 @@ user.duration || "Running"
 
 
 </tr>
+
 
 
 ))
@@ -412,15 +346,27 @@ user.duration || "Running"
 
 
 
+
 <button
 
 onClick={exportPDF}
 
-className="rounded-lg bg-green-600 px-6 py-3 font-semibold"
+className="
+mt-8
+bg-green-600
+px-6
+py-3
+rounded-xl
+font-semibold
+hover:bg-green-700
+transition
+"
 
 >
 
+
 📄 Export PDF
+
 
 </button>
 
@@ -431,9 +377,10 @@ className="rounded-lg bg-green-600 px-6 py-3 font-semibold"
 </div>
 
 
-)
+);
 
-}
+
+};
 
 
 

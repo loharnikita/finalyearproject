@@ -1,122 +1,187 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 
+import {useEffect,useState} from "react";
+import { Download } from "lucide-react";
 
-export default function NotesPage() {
 
 
-  const [savedNotes,setSavedNotes] = useState<any[]>([]);
+export default function NotesPage(){
 
 
+const [notes,setNotes]=useState<any[]>([]);
 
-  useEffect(()=>{
 
 
-    const getNotes = async()=>{
+useEffect(()=>{
 
 
-      try{
+fetch("/api/notes")
 
+.then(res=>res.json())
 
-        const response = await fetch("/api/notes");
+.then(data=>setNotes(data));
 
 
-        const data = await response.json();
+},[]);
 
 
-        setSavedNotes(data);
 
 
 
-      }catch(error){
+const download=(text:string)=>{
 
-        console.log(error);
 
-      }
+const blob=new Blob(
 
+[text],
 
-    };
+{
+type:"text/plain"
+}
 
+);
 
-    getNotes();
 
+const url=URL.createObjectURL(blob);
 
-  },[]);
 
+const a=document.createElement("a");
 
+a.href=url;
 
+a.download="meeting-note.txt";
 
-  return (
+a.click();
 
-    <div className="min-h-screen p-8 text-white">
 
+};
 
-      <h1 className="mb-6 text-4xl font-bold">
 
-        Previous Meeting Notes
 
-      </h1>
 
 
 
+return(
 
-      <div className="space-y-4">
 
+<div className="min-h-screen bg-[#0f172a] p-8 text-white">
 
-      {
-        savedNotes.map((item)=>(
 
 
-          <div
+<h1 className="text-4xl font-bold mb-8">
 
-          key={item._id}
+Previous Meeting Notes 📝
 
-          className="rounded-lg border p-5"
+</h1>
 
 
-          >
 
 
-          <p className="text-sm text-gray-400">
 
-          Meeting ID:
-          {item.meetingId}
+<div className="grid md:grid-cols-2 gap-6">
 
-          </p>
 
 
+{
 
-          <p className="mt-3 text-xl">
 
-          {item.content}
+notes.map((item)=>(
 
-          </p>
 
 
+<div
 
-          <p className="mt-3 text-sm text-gray-400">
+key={item._id}
 
-          Created:
-          {new Date(item.createdAt)
-          .toLocaleString()}
+className="rounded-2xl bg-[#1e293b] p-6 shadow-xl"
 
-          </p>
 
+>
 
 
-          </div>
 
+<p className="text-blue-400 mb-3">
 
-        ))
-      }
+Meeting ID
 
+</p>
 
-      </div>
 
 
-    </div>
+<p className="text-sm mb-5">
 
-  );
+{item.meetingId}
+
+</p>
+
+
+
+
+<div className="bg-black/30 rounded-xl p-4">
+
+
+{item.content}
+
+
+</div>
+
+
+
+
+
+<div className="flex justify-between mt-5">
+
+
+<p className="text-gray-400">
+
+{new Date(item.createdAt)
+.toLocaleString()}
+
+</p>
+
+
+
+<button
+
+onClick={()=>download(item.content)}
+
+className="flex gap-2 bg-green-600 px-4 py-2 rounded-xl"
+
+>
+
+
+<Download size={18}/>
+
+PDF/TXT
+
+
+</button>
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+))
+
+
+}
+
+
+
+</div>
+
+
+
+</div>
+
+
+)
 
 }

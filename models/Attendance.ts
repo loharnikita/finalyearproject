@@ -28,12 +28,20 @@ joinTime:{
 
 
 leaveTime:{
-    type:Date
+    type:Date,
+    default:null
 },
 
 
 duration:{
-    type:String
+    type:String,
+    default:"Running"
+},
+
+
+status:{
+    type:String,
+    default:"joined"
 }
 
 
@@ -41,7 +49,6 @@ duration:{
 {
 timestamps:true
 });
-
 
 
 export default mongoose.models.Attendance ||

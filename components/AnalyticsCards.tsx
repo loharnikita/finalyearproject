@@ -1,88 +1,143 @@
 'use client';
 
-import { useCall, useCallStateHooks } from "@stream-io/video-react-sdk";
+import { useEffect, useState } from "react";
+
+
+interface Attendance{
+
+_id:string;
+name:string;
+joinTime:string;
+leaveTime:string;
+duration:string;
+
+}
+
 
 
 const AnalyticsCards = () => {
 
 
-const call = useCall();
 
-const { useParticipants } = useCallStateHooks();
-
-const participants = useParticipants();
+const [attendance,setAttendance] =
+useState<Attendance[]>([]);
 
 
 
-if(!call) return null;
+useEffect(()=>{
+
+
+const loadAnalytics = async()=>{
+
+
+const res =
+await fetch("/api/attendance");
+
+
+const data =
+await res.json();
+
+
+setAttendance(data);
+
+
+};
 
 
 
-const host =
-call.state.createdBy?.name ||
-call.state.createdBy?.id ||
-"Unknown";
+loadAnalytics();
+
+
+
+},[]);
+
+
+
+
 
 
 
 const totalParticipants =
-participants.length;
-
-
-
-const status =
-call.state.endedAt
-?
-"Completed"
-:
-"Live";
-
-
-
-const startTime =
-call.state.startsAt
-?
-new Date(call.state.startsAt).toLocaleTimeString()
-:
-"Not started";
-
-
-
-const endTime =
-call.state.endedAt
-?
-new Date(call.state.endedAt).toLocaleTimeString()
-:
-"-";
+attendance.length;
 
 
 
 
 
-let duration="Live";
+const completedMeetings =
+attendance.filter(
+(item)=>item.leaveTime
+).length;
 
 
 
-if(call.state.startsAt && call.state.endedAt){
 
 
-const diff =
-new Date(call.state.endedAt).getTime()
--
-new Date(call.state.startsAt).getTime();
+const calculateDuration =()=>{
+
+
+if(attendance.length===0)
+
+return "0 min";
+
+
+
+let total = 0;
+
+
+
+attendance.forEach((item)=>{
+
+
+if(item.leaveTime){
+
+
+const start =
+new Date(item.joinTime).getTime();
+
+
+const end =
+new Date(item.leaveTime).getTime();
+
+
+
+total += end-start;
+
+
+}
+
+
+
+});
 
 
 
 const minutes =
-Math.floor(diff / 60000);
+Math.floor(total/60000);
 
 
 
-duration =
-`${minutes} min`;
+return `${minutes} min`;
 
 
-}
+
+};
+
+
+
+
+
+
+
+const averageAttendance =
+totalParticipants
+?
+"100%"
+:
+"0%";
+
+
+
 
 
 
@@ -91,40 +146,41 @@ duration =
 const data=[
 
 
-{
-title:"Host",
-value:host,
-icon:"👤"
-},
-
 
 {
-title:"Meeting Status",
-value:status,
-icon:"✅"
-},
-
-
-{
-title:"Meeting Duration",
-value:duration,
-icon:"⏱"
-},
-
-
-{
-title:"Participants",
+title:"Total Participants",
 value:totalParticipants,
 icon:"👥"
 },
 
 
+
+
+{
+title:"Completed Sessions",
+value:completedMeetings,
+icon:"✅"
+},
+
+
+
+
+{
+title:"Meeting Duration",
+value:calculateDuration(),
+icon:"⏱"
+},
+
+
+
+
 {
 title:"Average Attendance",
-value:
-`${totalParticipants ? 100 : 0}%`,
+value:averageAttendance,
 icon:"📊"
 },
+
+
 
 
 {
@@ -134,18 +190,21 @@ icon:"🔥"
 },
 
 
+
+
+
 {
-title:"Meeting Started",
-value:startTime,
+title:"Status",
+value:
+completedMeetings
+?
+"Completed"
+:
+"Running",
 icon:"🟢"
-},
-
-
-{
-title:"Meeting Ended",
-value:endTime,
-icon:"🔴"
 }
+
+
 
 
 
@@ -155,7 +214,10 @@ icon:"🔴"
 
 
 
-return (
+
+
+return(
+
 
 
 <div className="grid gap-6 md:grid-cols-4">
@@ -163,7 +225,9 @@ return (
 
 
 {
+
 data.map((item)=>(
+
 
 
 <div
@@ -172,10 +236,14 @@ key={item.title}
 
 className="rounded-2xl bg-dark-2 p-6 shadow"
 
+
+
 >
 
 
-<div className="flex items-center gap-3">
+
+<div className="flex gap-3 items-center">
+
 
 
 <span className="text-3xl">
@@ -193,23 +261,31 @@ className="rounded-2xl bg-dark-2 p-6 shadow"
 </p>
 
 
+
 </div>
 
 
 
 
-<h2 className="mt-5 text-2xl font-bold">
+
+
+<h2 className="mt-5 text-3xl font-bold text-white">
+
 
 {item.value}
+
 
 </h2>
 
 
 
+
 </div>
 
 
+
 ))
+
 
 }
 
@@ -221,7 +297,9 @@ className="rounded-2xl bg-dark-2 p-6 shadow"
 )
 
 
+
 }
+
 
 
 export default AnalyticsCards;

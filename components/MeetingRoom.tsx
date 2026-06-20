@@ -13,6 +13,7 @@ import {
   useCall,
 } from "@stream-io/video-react-sdk";
 
+
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Users, LayoutList } from "lucide-react";
@@ -29,6 +30,7 @@ import {
 
 import Loader from "./Loader";
 import MeetingNotes from "./MeetingNotes";
+import EndCallButton from "./EndCallButton";
 
 import { cn } from "@/lib/utils";
 
@@ -57,6 +59,7 @@ const isPersonalRoom =
 const call = useCall();
 
 
+
 const attendanceId = useRef<string | null>(null);
 
 const joinTime = useRef<Date | null>(null);
@@ -67,13 +70,16 @@ const [layout,setLayout] =
 useState<CallLayoutType>("speaker-left");
 
 
+
 const [showParticipants,setShowParticipants] =
 useState(false);
 
 
 
+
 const {useCallCallingState} =
 useCallStateHooks();
+
 
 
 const callingState =
@@ -95,12 +101,14 @@ const layouts:CallLayoutType[]=[
 
 
 
-// SAVE JOIN
+
+// SAVE JOIN ATTENDANCE
 
 useEffect(()=>{
 
 
 if(!call) return;
+
 
 
 const saveJoin = async()=>{
@@ -115,15 +123,14 @@ if(!participant) return;
 
 
 
-const response =
-await fetch("/api/attendance/save",{
+const res = await fetch(
+"/api/attendance/save",
+{
 
 
 method:"POST",
 
-
 headers:{
-
 
 "Content-Type":"application/json"
 
@@ -132,12 +139,9 @@ headers:{
 
 body:JSON.stringify({
 
-
 meetingId:call.id,
 
-
 userId:participant.userId,
-
 
 name:
 participant.name || "Guest",
@@ -145,21 +149,22 @@ participant.name || "Guest",
 
 joinTime:new Date()
 
-
 })
 
+}
 
-});
+);
 
 
 
 const data =
-await response.json();
+await res.json();
 
 
 
 attendanceId.current =
 data._id;
+
 
 
 joinTime.current =
@@ -171,10 +176,13 @@ new Date();
 
 
 
+
 if(
 callingState === CallingState.JOINED &&
 !attendanceId.current
-){
+)
+
+{
 
 saveJoin();
 
@@ -182,7 +190,7 @@ saveJoin();
 
 
 
-},[callingState,call]);
+},[call,callingState]);
 
 
 
@@ -192,30 +200,25 @@ saveJoin();
 
 
 
-
-// LEAVE UPDATE
-
+// END MEETING
 
 const handleLeave = async()=>{
 
 
-if(!attendanceId.current)
-{
+if(!attendanceId.current){
 
-console.log("No attendance id");
-
+console.log("Attendance id missing");
 return;
 
 }
 
 
 
-const leaveTime =
-new Date();
+const leaveTime = new Date();
 
 
 
-let duration="0 min";
+let duration = "0 min";
 
 
 
@@ -224,18 +227,12 @@ if(joinTime.current){
 
 const diff =
 Math.floor(
-
-(leaveTime.getTime()
--
-joinTime.current.getTime())
-
-/60000
-
+(leaveTime.getTime() -
+joinTime.current.getTime()) / 60000
 );
 
 
-duration =
-`${diff} min`;
+duration = `${diff} min`;
 
 }
 
@@ -250,7 +247,6 @@ method:"PUT",
 
 headers:{
 
-
 "Content-Type":"application/json"
 
 },
@@ -258,12 +254,9 @@ headers:{
 
 body:JSON.stringify({
 
-
 id:attendanceId.current,
 
-
-duration
-
+duration:duration
 
 })
 
@@ -272,18 +265,14 @@ duration
 
 
 
-if(call){
-
-await call.leave();
-
-}
-
-
-router.push("/");
+console.log("Attendance updated");
 
 
 
 };
+
+
+
 
 
 
@@ -295,6 +284,7 @@ callingState !== CallingState.JOINED
 )
 
 return <Loader />;
+
 
 
 
@@ -313,9 +303,10 @@ return <PaginatedGridLayout/>;
 
 
 
+
 case "speaker-right":
 
-return (
+return(
 
 <SpeakerLayout
 
@@ -329,7 +320,7 @@ participantsBarPosition="left"
 
 default:
 
-return (
+return(
 
 <SpeakerLayout
 
@@ -343,18 +334,27 @@ participantsBarPosition="right"
 }
 
 
+
 };
 
 
 
 
 
-return (
+
+
+
+
+return(
+
+
 
 <section className="relative h-screen w-full overflow-hidden pt-4 text-white">
 
 
+
 <div className="relative flex size-full items-center justify-center">
+
 
 
 <div className="flex size-full max-w-[1000px] items-center">
@@ -377,9 +377,7 @@ className={cn(
 
 {
 
-"show-block":
-
-showParticipants
+"show-block":showParticipants
 
 }
 
@@ -395,11 +393,14 @@ onClose={()=>setShowParticipants(false)}
 />
 
 
+
+</div>
+
+
+
 </div>
 
 
-
-</div>
 
 
 
@@ -410,23 +411,29 @@ onClose={()=>setShowParticipants(false)}
 <div className="fixed bottom-0 flex w-full items-center justify-center gap-5">
 
 
+
+
+
 <MeetingNotes/>
 
 
 
 
 
-<CallControls
 
-onLeave={handleLeave}
+{/* KEEP STREAM CONTROLS ONLY */}
 
-/>
+<CallControls />
+
+
+
 
 
 
 
 
 <DropdownMenu>
+
 
 
 <DropdownMenuTrigger
@@ -445,12 +452,15 @@ className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2"
 
 
 
+
 <DropdownMenuContent className="bg-dark-1 text-white">
+
 
 
 {
 
-layouts.map(item=>(
+layouts.map((item)=>(
+
 
 
 <div key={item}>
@@ -462,17 +472,18 @@ onClick={()=>setLayout(item)}
 
 >
 
-
 {item}
 
 
 </DropdownMenuItem>
 
 
+
 <DropdownMenuSeparator/>
 
 
 </div>
+
 
 
 ))
@@ -485,6 +496,7 @@ onClick={()=>setLayout(item)}
 
 
 
+
 </DropdownMenu>
 
 
@@ -492,7 +504,11 @@ onClick={()=>setLayout(item)}
 
 
 
+
 <CallStatsButton/>
+
+
+
 
 
 
@@ -518,15 +534,38 @@ onClick={()=>setShowParticipants(!showParticipants)}
 
 
 
+
+
+
+
+{
+
+!isPersonalRoom &&
+
+<EndCallButton onLeave={handleLeave}/>
+
+
+}
+
+
+
+
+
 </div>
 
 
+
+
+
 </section>
+
+
 
 );
 
 
 };
+
 
 
 export default MeetingRoom;

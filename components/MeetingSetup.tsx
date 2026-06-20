@@ -204,8 +204,6 @@ Join with mic and camera off
 
 
 
-
-
 <Button
 
 className="rounded-md bg-green-500 px-4 py-2.5"
@@ -213,7 +211,22 @@ className="rounded-md bg-green-500 px-4 py-2.5"
 onClick={async()=>{
 
 
-await call.join();
+await call.join({
+
+user:{
+
+id: crypto.randomUUID(),
+
+name:
+username.trim()
+?
+username
+:
+"Guest User"
+
+}
+
+});
 
 
 setIsSetupComplete(true);
@@ -226,8 +239,6 @@ setIsSetupComplete(true);
 Join meeting
 
 </Button>
-
-
 
 
 </div>

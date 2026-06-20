@@ -3,95 +3,115 @@
 import { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useCall } from '@stream-io/video-react-sdk';
+import { X, Download, Save } from 'lucide-react';
 
 
 const MeetingNotes = () => {
 
-  const [open,setOpen] = useState(false);
 
-  const [note,setNote] = useState('');
+const [open,setOpen] = useState(false);
 
-  const {user} = useUser();
+const [note,setNote] = useState("");
 
-  const call = useCall();
+const {user}=useUser();
 
-
-
-  const saveNotes = async()=>{
-
-
-    if(!user || !call){
-
-      alert("User or meeting not found");
-
-      return;
-
-    }
+const call=useCall();
 
 
 
-    try{
+const saveNotes = async()=>{
 
 
-      const response = await fetch("/api/notes",{
+if(!user || !call){
 
-        method:"POST",
+alert("Meeting not found");
+return;
 
-
-        headers:{
-
-          "Content-Type":"application/json"
-
-        },
-
-
-        body:JSON.stringify({
-
-          meetingId:call.id,
-
-          userId:user.id,
-
-          content:note
-
-        })
-
-
-      });
+}
 
 
 
-      if(response.ok){
+await fetch("/api/notes",{
 
-        alert("Notes saved successfully");
+method:"POST",
 
-        setNote("");
+headers:{
 
-      }
+"Content-Type":"application/json"
 
+},
 
+body:JSON.stringify({
 
-    }catch(error){
+meetingId:call.id,
 
-      console.log(error);
+userId:user.id,
 
-      alert("Error saving notes");
+content:note
 
-    }
-
-
-  }
-
+})
 
 
-return (
+});
+
+
+alert("Notes saved");
+
+setNote("");
+
+};
+
+
+
+
+
+const downloadNotes =()=>{
+
+
+const file = new Blob(
+
+[note],
+
+{
+type:"text/plain"
+}
+
+);
+
+
+const url =
+URL.createObjectURL(file);
+
+
+
+const a=document.createElement("a");
+
+
+a.href=url;
+
+
+a.download="meeting-notes.txt";
+
+
+a.click();
+
+
+};
+
+
+
+
+
+return(
 
 <>
 
+
 <button
 
-onClick={()=>setOpen(!open)}
+onClick={()=>setOpen(true)}
 
-className="rounded-xl bg-blue-600 px-4 py-2"
+className="rounded-xl bg-blue-600 px-5 py-3 flex gap-2"
 
 >
 
@@ -101,32 +121,66 @@ className="rounded-xl bg-blue-600 px-4 py-2"
 
 
 
+
+
 {
 
-open && (
+open &&
 
-<div className="fixed right-5 top-20 z-50 w-96 rounded-xl bg-black p-5 text-white">
+(
+
+<div className="fixed right-5 top-20 z-50 w-[420px] rounded-2xl bg-[#111827] p-5 shadow-2xl text-white">
 
 
-<h2 className="text-xl font-bold mb-3">
+<div className="flex justify-between items-center">
+
+
+<h2 className="text-xl font-bold">
 
 Meeting Notes
 
 </h2>
 
 
+<button
+
+onClick={()=>setOpen(false)}
+
+>
+
+<X/>
+
+</button>
+
+
+</div>
+
+
+
+
 
 <textarea
 
-className="h-60 w-full rounded-lg p-3 text-black"
-
-placeholder="Write meeting notes..."
 
 value={note}
 
+
 onChange={(e)=>setNote(e.target.value)}
 
+
+placeholder="Write important points, decisions, tasks..."
+
+
+className="mt-5 h-64 w-full rounded-xl p-4 text-black"
+
+
 />
+
+
+
+
+
+<div className="flex gap-3 mt-4">
 
 
 
@@ -134,11 +188,37 @@ onChange={(e)=>setNote(e.target.value)}
 
 onClick={saveNotes}
 
-className="mt-3 rounded bg-green-600 px-4 py-2"
+className="flex items-center gap-2 bg-green-600 px-5 py-2 rounded-xl"
 
 >
 
+
+<Save size={18}/>
+
 Save
+
+
+</button>
+
+
+
+
+
+<button
+
+onClick={downloadNotes}
+
+
+className="flex items-center gap-2 bg-purple-600 px-5 py-2 rounded-xl"
+
+
+>
+
+
+<Download size={18}/>
+
+Download
+
 
 </button>
 
@@ -147,16 +227,24 @@ Save
 </div>
 
 
+
+
+</div>
+
+
 )
+
 
 }
 
 
 </>
 
+
 )
 
 }
+
 
 
 export default MeetingNotes;

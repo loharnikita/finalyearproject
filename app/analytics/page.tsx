@@ -1,27 +1,14 @@
-import AnalyticsCards from "@/components/AnalyticsCards";
+import MeetingAnalytics from "@/components/MeetingAnalytics";
 
 
-const AnalyticsPage = () => {
+export default function AnalyticsPage(){
 
 
-  return (
+return(
 
-    <section className="p-8 text-white">
+<MeetingAnalytics/>
 
-      <h1 className="mb-8 text-4xl font-bold">
-        Meeting Analytics
-      </h1>
+);
 
 
-      <AnalyticsCards />
-
-
-    </section>
-
-  );
-
-
-};
-
-
-export default AnalyticsPage;
+}

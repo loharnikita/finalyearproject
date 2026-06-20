@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
+
+import {connectDB} from "@/lib/db";
+
 import Attendance from "@/models/Attendance";
 
 
-export async function PUT(req: Request){
+export async function PUT(req:Request){
+
 
 try{
+
 
 await connectDB();
 
@@ -23,9 +27,12 @@ body.id,
 
 leaveTime:new Date(),
 
-duration:body.duration
+duration:body.duration,
+
+status:"left"
 
 },
+
 
 {
 new:true
@@ -38,22 +45,21 @@ new:true
 return NextResponse.json(updated);
 
 
+
 }
 catch(error){
+
 
 console.log(error);
 
 
 return NextResponse.json(
-
 {
-error:"Update failed"
+error:"update failed"
 },
-
 {
 status:500
 }
-
 );
 
 
