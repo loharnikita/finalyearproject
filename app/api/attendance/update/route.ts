@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import {connectDB} from "@/lib/db";
+import { connectDB } from "@/lib/db";
 
 import Attendance from "@/models/Attendance";
 
@@ -18,8 +18,7 @@ const body = await req.json();
 
 
 
-const updated =
-await Attendance.findByIdAndUpdate(
+const updated = await Attendance.findByIdAndUpdate(
 
 body.id,
 
@@ -27,12 +26,9 @@ body.id,
 
 leaveTime:new Date(),
 
-duration:body.duration,
-
-status:"left"
+duration:body.duration || "Completed"
 
 },
-
 
 {
 new:true
@@ -50,19 +46,24 @@ return NextResponse.json(updated);
 catch(error){
 
 
-console.log(error);
+console.log("Update error:",error);
 
 
 return NextResponse.json(
+
 {
-error:"update failed"
+error:"Update failed"
 },
+
 {
 status:500
 }
+
 );
 
 
 }
+
+
 
 }

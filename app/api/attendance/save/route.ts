@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
+
 import { connectDB } from "@/lib/db";
+
 import Attendance from "@/models/Attendance";
 
 
 export async function POST(req:Request){
+
 
 try{
 
@@ -15,14 +18,13 @@ const body = await req.json();
 
 
 
-const existing =
-await Attendance.findOne({
+const existing = await Attendance.findOne({
 
-meetingId:body.meetingId,
+meetingId: body.meetingId,
 
-userId:body.userId,
+userId: body.userId,
 
-status:"joined"
+leaveTime:null
 
 });
 
@@ -30,22 +32,45 @@ status:"joined"
 
 if(existing){
 
+
 return NextResponse.json(existing);
+
 
 }
 
 
 
+
+
 const attendance =
-await Attendance.create(body);
+await Attendance.create({
+
+meetingId:body.meetingId,
+
+userId:body.userId,
+
+name:body.name,
+
+joinTime:new Date(),
+
+leaveTime:null,
+
+duration:"Running"
+
+
+});
+
+
 
 
 
 return NextResponse.json(attendance);
 
 
+
 }
 catch(error){
+
 
 console.log(error);
 
@@ -61,5 +86,7 @@ status:500
 
 
 }
+
+
 
 }

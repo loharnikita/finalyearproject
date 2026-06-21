@@ -33,7 +33,7 @@ import MeetingNotes from "./MeetingNotes";
 import EndCallButton from "./EndCallButton";
 
 import { cn } from "@/lib/utils";
-
+import CopyInvite from "./CopyInvite";
 
 
 type CallLayoutType =
@@ -59,8 +59,12 @@ const isPersonalRoom =
 const call = useCall();
 
 
+const attendanceId = useRef<string | null>(
+null
+);
 
-const attendanceId = useRef<string | null>(null);
+const attendanceLoaded =
+useRef(false);
 
 const joinTime = useRef<Date | null>(null);
 
@@ -124,9 +128,10 @@ call.state.localParticipant;
 if(!participant) return;
 
 
-if(attendanceSaved.current) return;
+if(attendanceLoaded.current)
+return;
 
-attendanceSaved.current = true;
+attendanceLoaded.current=true;
 const res = await fetch(
 "/api/attendance/save",
 {
@@ -263,9 +268,7 @@ body:JSON.stringify({
 
 id:attendanceId.current,
 
-duration:duration,
-
-leaveTime:leaveTime
+duration:duration
 
 })
 
@@ -291,13 +294,7 @@ console.log(
 
 // end meeting after saving
 
-if(call){
 
-
-await call.endCall();
-
-
-}
 
 
 
@@ -477,7 +474,7 @@ onClose={()=>setShowParticipants(false)}
 
 <CallControls />
 
-
+<CopyInvite/>
 
 
 
