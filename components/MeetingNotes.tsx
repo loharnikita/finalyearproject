@@ -111,7 +111,7 @@ return(
 
 onClick={()=>setOpen(true)}
 
-className="rounded-xl bg-blue-600 px-5 py-3 flex gap-2"
+className="rounded-xl  px-5 py-3 flex gap-2"
 
 >
 

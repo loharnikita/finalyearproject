@@ -3,12 +3,29 @@
 import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useCall, useCallStateHooks } from "@stream-io/video-react-sdk";
 
 
 const AttendanceTable = () => {
 
 
 const [users,setUsers] = useState<any[]>([]);
+
+
+
+const {useLocalParticipant} =
+useCallStateHooks();
+
+
+const localParticipant =
+useLocalParticipant();
+
+const call = useCall();
+
+
+const isHost =
+localParticipant?.userId ===
+call?.state.createdBy?.id;
 
 
 
@@ -29,15 +46,35 @@ const data = await res.json();
 setUsers(data);
 
 
-
 };
 
 
+if(isHost){
 
 getAttendance();
 
+}
 
-},[]);
+
+},[isHost]);
+
+
+
+
+
+if(!isHost){
+
+return(
+
+<div className="flex h-screen items-center justify-center text-white text-2xl font-bold">
+
+Only host can view attendance report
+
+</div>
+
+)
+
+}
 
 
 
@@ -130,8 +167,8 @@ doc.save(
 );
 
 
-};
 
+};
 
 
 
@@ -155,8 +192,6 @@ return (
 
 
 
-
-
 <div className="rounded-2xl bg-dark-2 overflow-hidden shadow-xl">
 
 
@@ -172,22 +207,30 @@ return (
 
 
 <th className="p-5 text-left">
+
 Name
+
 </th>
 
 
 <th className="p-5">
+
 Join Time
+
 </th>
 
 
 <th className="p-5">
+
 Leave Time
+
 </th>
 
 
 <th className="p-5">
+
 Duration
+
 </th>
 
 
@@ -195,8 +238,6 @@ Duration
 
 
 </thead>
-
-
 
 
 
@@ -214,7 +255,7 @@ users.map((user)=>(
 
 key={user._id}
 
-className="border-t border-gray-700 hover:bg-gray-800 transition"
+className="border-t border-gray-700 hover:bg-gray-800"
 
 >
 
@@ -232,9 +273,7 @@ className="border-t border-gray-700 hover:bg-gray-800 transition"
 
 <td className="p-5 text-center">
 
-
 {formatTime(user.joinTime)}
-
 
 </td>
 
@@ -270,36 +309,10 @@ Still Joined
 
 
 
-
-
 <td className="p-5 text-center">
 
 
-<span
-
-className={
-
-`
-px-4 py-2 rounded-full text-sm font-semibold
-
-${user.duration
-
-?
-
-"bg-green-600"
-
-:
-
-"bg-blue-600"
-
-}
-
-`
-
-}
-
->
-
+<span className="px-4 py-2 rounded-full bg-green-600">
 
 {
 
@@ -309,7 +322,6 @@ user.duration ||
 
 }
 
-
 </span>
 
 
@@ -318,8 +330,8 @@ user.duration ||
 
 
 
-</tr>
 
+</tr>
 
 
 ))
@@ -328,19 +340,13 @@ user.duration ||
 }
 
 
-
-
-
 </tbody>
-
 
 
 </table>
 
 
-
 </div>
-
 
 
 
@@ -358,12 +364,10 @@ px-6
 py-3
 rounded-xl
 font-semibold
-hover:bg-green-700
-transition
 "
 
->
 
+>
 
 📄 Export PDF
 
@@ -381,7 +385,6 @@ transition
 
 
 };
-
 
 
 export default AttendanceTable;

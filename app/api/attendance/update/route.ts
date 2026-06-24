@@ -14,19 +14,61 @@ try{
 await connectDB();
 
 
-const body = await req.json();
+const {id}=await req.json();
 
 
 
-const updated = await Attendance.findByIdAndUpdate(
+const attendance =
+await Attendance.findById(id);
 
-body.id,
+
+
+if(!attendance){
+
+return NextResponse.json(
+{
+error:"Not found"
+},
+{
+status:404
+}
+);
+
+}
+
+
+
+
+const leaveTime =
+new Date();
+
+
+
+const diff =
+Math.floor(
+
+(
+leaveTime.getTime()
+-
+attendance.joinTime.getTime()
+
+)
+/60000
+
+);
+
+
+
+const updated =
+await Attendance.findByIdAndUpdate(
+
+id,
 
 {
 
-leaveTime:new Date(),
+leaveTime:leaveTime,
 
-duration:body.duration || "Completed"
+duration:`${diff} min`
 
 },
 
@@ -43,22 +85,21 @@ return NextResponse.json(updated);
 
 
 }
+
 catch(error){
 
 
-console.log("Update error:",error);
+console.log(error);
+
 
 
 return NextResponse.json(
-
 {
-error:"Update failed"
+error:"failed"
 },
-
 {
 status:500
 }
-
 );
 
 

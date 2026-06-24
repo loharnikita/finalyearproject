@@ -1,6 +1,7 @@
 "use client";
 
 import {useEffect,useState} from "react";
+import { useRouter } from "next/navigation";
 
 import {
   Users,
@@ -10,9 +11,9 @@ import {
   Brain,
   TrendingUp,
   BarChart3,
-  Target,
-  Zap
+  Target
 } from "lucide-react";
+
 
 
 type Attendance={
@@ -33,10 +34,19 @@ duration?:string;
 
 
 
+
 const MeetingAnalytics=()=>{
 
+const router = useRouter();
 
 const [data,setData]=useState<Attendance[]>([]);
+
+
+
+
+const [loading,setLoading]=useState(false);
+
+
 
 
 
@@ -71,36 +81,99 @@ getData();
 
 
 
+// CALCULATIONS
+
+
 const totalMeetings =
+
 new Set(
+
 data.map(x=>x.meetingId)
+
 ).size;
+
 
 
 
 
 const participants =
+
 new Set(
+
 data.map(x=>x.name)
+
 ).size;
 
 
 
 
+
+
 const completed =
+
 data.filter(
+
 x=>x.leaveTime
+
 ).length;
 
 
 
 
 
+
 const engagement =
+
 Math.min(
+
 100,
+
 participants*10 + completed*5
+
 );
+
+
+
+
+
+
+
+
+// GEMINI SUMMARY FUNCTION
+
+
+const generateSummary = async () => {
+  try {
+    setLoading(true);
+
+    const meetingId = data[0]?.meetingId; // important
+
+    const res = await fetch("/api/summary/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        meetingId
+      })
+    });
+
+    const result = await res.json();
+
+    localStorage.setItem("meetingSummary", result.summary);
+
+    router.push("/meeting-summary");
+
+  } catch (error) {
+    console.log("Summary Error", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+
 
 
 
@@ -109,17 +182,24 @@ participants*10 + completed*5
 return(
 
 
+
 <div className="min-h-screen bg-[#020617] p-10 text-white">
+
+
 
 
 
 <h1 className="text-4xl font-bold flex items-center gap-3">
 
+
 <Brain size={40}/>
+
 
 MeetVerse AI Analytics
 
+
 </h1>
+
 
 
 <p className="text-gray-400 mt-2">
@@ -132,50 +212,86 @@ Smart insights from your online meetings
 
 
 
+
+
+
+
 {/* TOP CARDS */}
+
 
 
 <div className="grid md:grid-cols-4 gap-6 mt-10">
 
 
+
 <AnalyticsCard
+
 icon={<Video/>}
+
 title="Total Meetings"
+
 value={totalMeetings}
+
 gradient="from-blue-500 to-cyan-500"
+
 />
 
 
 
+
+
 <AnalyticsCard
-icon={<Users/>}
+
+icon={<Users/>
+
+
+}
+
 title="Participants"
+
 value={participants}
+
 gradient="from-purple-500 to-pink-500"
+
 />
 
 
 
 
+
 <AnalyticsCard
+
 icon={<Clock/>}
+
 title="Completed"
+
 value={completed}
+
 gradient="from-green-500 to-emerald-500"
+
 />
 
 
 
+
+
 <AnalyticsCard
+
 icon={<Activity/>}
+
 title="Engagement"
+
 value={`${engagement}%`}
+
 gradient="from-orange-500 to-red-500"
+
 />
 
 
 
 </div>
+
+
 
 
 
@@ -190,9 +306,15 @@ gradient="from-orange-500 to-red-500"
 <div className="mt-10 rounded-3xl bg-gradient-to-r from-indigo-900 to-purple-900 p-8">
 
 
+
+
+
 <div className="flex items-center gap-3">
 
+
 <Brain size={30}/>
+
+
 
 <h2 className="text-2xl font-bold">
 
@@ -200,21 +322,58 @@ AI Meeting Insight
 
 </h2>
 
+
 </div>
+
 
 
 
 
 <p className="mt-5 text-lg text-gray-200">
 
-Your meetings show good collaboration.
 
-MeetVerse AI detects active participation and recommends focused meetings for better productivity.
+MeetVerse AI analyzes meeting participation and creates smart productivity insights.
+
 
 </p>
 
 
+
+
+
+
+<button
+onClick={generateSummary}
+className="
+mt-5
+bg-blue-600
+px-5
+py-2
+rounded-lg
+text-white
+"
+>
+🤖 Generate AI Summary
+</button>
+
+
+
 </div>
+
+
+
+
+
+
+
+
+
+{/* AI RESULT */}
+
+
+
+
+
 
 
 
@@ -237,9 +396,12 @@ MeetVerse AI detects active participation and recommends focused meetings for be
 
 <h2 className="text-xl font-bold">
 
+
 Meeting Health Score
 
+
 </h2>
+
 
 
 
@@ -248,6 +410,7 @@ Meeting Health Score
 
 
 <div className="h-44 w-44 rounded-full border-8 border-green-500 flex items-center justify-center">
+
 
 
 <h1 className="text-5xl font-bold">
@@ -265,14 +428,19 @@ Meeting Health Score
 
 
 
+
 <p className="text-center mt-5 text-green-400">
 
+
 Excellent Meeting Performance
+
 
 </p>
 
 
+
 </div>
+
 
 
 
@@ -284,14 +452,19 @@ Excellent Meeting Performance
 {/* ACTIVITY */}
 
 
+
 <div className="rounded-3xl bg-[#111827] p-8">
+
 
 
 <h2 className="text-xl font-bold flex gap-2">
 
+
 <TrendingUp/>
 
+
 Meeting Activity
+
 
 </h2>
 
@@ -301,7 +474,9 @@ Meeting Activity
 <div className="flex items-end gap-5 h-52 mt-6">
 
 
+
 {
+
 data.slice(0,6).map((x,i)=>(
 
 
@@ -312,7 +487,9 @@ className="flex flex-col items-center">
 
 <div
 
+
 className="w-10 bg-blue-500 rounded-xl"
+
 
 style={{
 
@@ -324,6 +501,7 @@ height:`${60+i*20}px`
 />
 
 
+
 <span>
 
 M{i+1}
@@ -331,17 +509,18 @@ M{i+1}
 </span>
 
 
+
 </div>
 
 
+
 ))
+
 
 }
 
 
 
-</div>
-
 
 </div>
 
@@ -354,13 +533,17 @@ M{i+1}
 
 
 
+</div>
 
 
 
-{/* NEW FEATURES */}
 
 
 
+
+
+
+{/* LOWER SECTION */}
 
 
 
@@ -370,26 +553,22 @@ M{i+1}
 
 
 
-
-
-{/* RADAR */}
-
-
 <div className="rounded-3xl bg-[#111827] p-8">
 
 
 <h2 className="text-2xl font-bold flex gap-2">
 
+
 <Target/>
 
+
 Meeting Performance Radar
+
 
 </h2>
 
 
 
-
-<div className="mt-8 space-y-5">
 
 
 <Progress
@@ -435,17 +614,8 @@ value={80}
 </div>
 
 
-</div>
 
 
-
-
-
-
-
-
-
-{/* SMART STATISTICS */}
 
 
 
@@ -454,12 +624,14 @@ value={80}
 
 <h2 className="text-2xl font-bold flex gap-2">
 
+
 <BarChart3/>
 
-Smart Meeting Statistics
+
+Smart Statistics
+
 
 </h2>
-
 
 
 
@@ -471,9 +643,11 @@ Smart Meeting Statistics
 
 title="Average Attendance"
 
-value={`${participants}`}
+value={participants}
 
 />
+
+
 
 
 
@@ -481,9 +655,11 @@ value={`${participants}`}
 
 title="Total Sessions"
 
-value={`${totalMeetings}`}
+value={totalMeetings}
 
 />
+
+
 
 
 
@@ -494,6 +670,8 @@ title="Productivity Score"
 value={`${engagement}%`}
 
 />
+
+
 
 
 
@@ -514,9 +692,9 @@ value="A+"
 
 
 
-
-
 </div>
+
+
 
 
 
@@ -534,21 +712,21 @@ value="A+"
 
 
 
-const Progress=({
-
-title,
-
-value
-
-}:any)=>(
 
 
-<div>
+
+
+const Progress=({title,value}:any)=>(
+
+
+<div className="mt-5">
 
 
 <div className="flex justify-between mb-2">
 
+
 <span>{title}</span>
+
 
 <span>{value}%</span>
 
@@ -562,7 +740,9 @@ value
 
 <div
 
+
 className="h-3 bg-green-500 rounded-full"
+
 
 style={{
 
@@ -589,13 +769,8 @@ width:`${Math.min(value,100)}%`
 
 
 
-const Stat=({
 
-title,
-
-value
-
-}:any)=>(
+const Stat=({title,value}:any)=>(
 
 
 <div className="bg-black rounded-2xl p-5">
@@ -619,6 +794,7 @@ value
 
 
 )
+
 
 
 
@@ -684,9 +860,8 @@ className={`rounded-3xl p-6 bg-gradient-to-br ${gradient}`}
 
 )
 
-
 }
 
 
 
-export default MeetingAnalytics; 
+export default MeetingAnalytics;

@@ -29,7 +29,7 @@ onClick={copyLink}
 className="
 flex gap-2
 rounded-xl
-bg-blue-600
+
 px-4
 py-2
 "

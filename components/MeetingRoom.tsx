@@ -17,7 +17,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Users, LayoutList } from "lucide-react";
-
+import MeetingChat from "./MeetingChat";
 
 import {
   DropdownMenu,
@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
+import MeetingTranscript from "./MeetingTranscript";
 
 import Loader from "./Loader";
 import MeetingNotes from "./MeetingNotes";
@@ -55,8 +56,10 @@ const isPersonalRoom =
 !!searchParams.get("personal");
 
 
-
 const call = useCall();
+
+
+if(!call) return null;
 
 
 const attendanceId = useRef<string | null>(
@@ -80,6 +83,7 @@ useState<CallLayoutType>("speaker-left");
 const [showParticipants,setShowParticipants] =
 useState(false);
 
+const [showChat,setShowChat]=useState(false);
 
 
 
@@ -220,39 +224,10 @@ try{
 if(attendanceId.current){
 
 
-
-const leaveTime = new Date();
-
-
-
-let duration = "0 min";
-
-
-
-if(joinTime.current){
-
-
-const diff = Math.floor(
-(
-leaveTime.getTime()
--
-joinTime.current.getTime()
-)
-/60000
-);
-
-
-
-duration = `${diff} min`;
-
-
-
-}
-
-
-
 await fetch(
+
 "/api/attendance/update",
+
 {
 
 method:"PUT",
@@ -266,24 +241,17 @@ headers:{
 
 body:JSON.stringify({
 
-id:attendanceId.current,
-
-duration:duration
+id:attendanceId.current
 
 })
 
 }
 
 
-
 );
 
 
-
-console.log(
-"Attendance saved"
-);
-
+console.log("Attendance Updated");
 
 
 }
@@ -292,10 +260,7 @@ console.log(
 
 
 
-// end meeting after saving
-
-
-
+await call.leave();
 
 
 
@@ -307,7 +272,6 @@ router.push("/");
 
 catch(error){
 
-
 console.log(
 "Leave error",
 error
@@ -317,10 +281,61 @@ error
 }
 
 
+};
+// AUTO UPDATE ATTENDANCE WHEN USER CLOSES TAB / LEAVES
+
+// AUTO UPDATE WHEN USER CLOSES TAB
+
+useEffect(()=>{
+
+
+const updateAttendance = ()=>{
+
+
+if(attendanceId.current){
+
+
+navigator.sendBeacon(
+
+"/api/attendance/update",
+
+JSON.stringify({
+
+id: attendanceId.current
+
+})
+
+);
+
+
+}
+
 
 };
 
 
+
+window.addEventListener(
+"beforeunload",
+updateAttendance
+);
+
+
+
+return()=>{
+
+
+window.removeEventListener(
+"beforeunload",
+updateAttendance
+);
+
+
+};
+
+
+
+},[]);
 
 
 
@@ -465,8 +480,23 @@ onClose={()=>setShowParticipants(false)}
 
 <MeetingNotes/>
 
+<button
 
+onClick={()=>setShowChat(!showChat)}
 
+className="rounded-xl  px-4 py-2"
+
+>
+
+💬 Chat
+
+</button>
+
+<MeetingTranscript
+
+meetingId={call.id}
+
+/>
 
 
 
@@ -601,7 +631,41 @@ onClick={()=>setShowParticipants(!showParticipants)}
 </div>
 
 
+{
+showChat &&
 
+<div
+className="
+fixed
+right-5
+top-10
+bottom-20
+z-50
+"
+>
+
+{
+call.state.localParticipant &&
+
+<MeetingChat
+
+meetingId={call.id}
+
+userId={
+call.state.localParticipant.userId
+}
+
+name={
+call.state.localParticipant.name || "Guest"
+}
+
+/>
+
+}
+
+</div>
+
+}
 
 
 </section>
