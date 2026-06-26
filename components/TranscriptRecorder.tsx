@@ -1,26 +1,26 @@
 "use client";
 
-import {useRef,useState} from "react";
-import {useRouter} from "next/navigation";
-
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const TranscriptRecorder = ({
-meetingId
+  meetingId
 }:{
-meetingId:string
-})=>{
+  meetingId:string
+}) => {
 
 
 const recognitionRef = useRef<any>(null);
 
-const [recording,setRecording]=useState(false);
+const [recording,setRecording] = useState(false);
+
+const [text,setText] = useState("");
 
 const router = useRouter();
 
 
 
-
-const startRecording=async()=>{
+const startRecording = () => {
 
 
 const SpeechRecognition =
@@ -28,49 +28,111 @@ window.SpeechRecognition ||
 window.webkitSpeechRecognition;
 
 
-
 if(!SpeechRecognition){
 
-alert(
-"Speech recognition not supported"
-);
-
+alert("Speech recognition not supported");
 return;
 
 }
 
 
 
-
-const recognition =
-new SpeechRecognition();
+const recognition = new SpeechRecognition();
 
 
+recognition.continuous = true;
 
-recognition.continuous=true;
+recognition.interimResults = true;
 
-recognition.interimResults=false;
-
-recognition.lang="en-US";
+recognition.lang = "en-US";
 
 
 
 
 
-recognition.onresult=async(event:any)=>{
+recognition.onresult = (event:any)=>{
 
 
-const text =
-event.results[
-event.results.length-1
-][0].transcript;
+let transcript = "";
+
+
+for(
+let i=event.resultIndex;
+i<event.results.length;
+i++
+){
+
+transcript +=
+event.results[i][0].transcript;
+
+}
 
 
 
 console.log(
-"text:",
+"Live Transcript:",
+transcript
+);
+
+
+
+setText(prev =>
+prev + " " + transcript
+);
+
+
+
+};
+
+
+
+recognition.start();
+
+
+recognitionRef.current = recognition;
+
+
+setRecording(true);
+
+
+};
+
+
+
+
+
+
+const stopRecording = async()=>{
+
+
+if(recognitionRef.current){
+
+recognitionRef.current.stop();
+
+}
+
+
+
+setRecording(false);
+
+
+
+console.log(
+"SAVING FINAL TEXT:",
 text
 );
+
+
+
+
+if(!text){
+
+alert("No transcript found");
+
+return;
+
+}
+
 
 
 
@@ -84,9 +146,7 @@ await fetch(
 method:"POST",
 
 headers:{
-
 "Content-Type":"application/json"
-
 },
 
 body:JSON.stringify({
@@ -105,8 +165,8 @@ text
 
 
 
-// GENERATE SUMMARY
 
+// GENERATE SUMMARY
 
 const res =
 await fetch(
@@ -116,9 +176,7 @@ await fetch(
 method:"POST",
 
 headers:{
-
 "Content-Type":"application/json"
-
 },
 
 body:JSON.stringify({
@@ -133,18 +191,14 @@ transcript:text
 
 
 
-const result =
+const data =
 await res.json();
 
 
 
-
 localStorage.setItem(
-
 "meetingSummary",
-
-result.summary
-
+data.summary
 );
 
 
@@ -161,22 +215,6 @@ router.push(
 
 
 
-recognition.start();
-
-
-
-recognitionRef.current =
-recognition;
-
-
-
-setRecording(true);
-
-
-};
-
-
-
 
 
 return(
@@ -184,32 +222,39 @@ return(
 
 <button
 
-onClick={startRecording}
+onClick={
+recording
+?
+stopRecording
+:
+startRecording
+}
+
 
 className={`
+flex
+items-center
+gap-2
 px-5
-py-3
+py-2
 rounded-xl
 text-white
 font-semibold
 
 ${
-
 recording
-
 ?
-
 "bg-red-600"
-
 :
-
-"bg-blue-600"
-
+"bg-[#19232d]"
 }
 
 `}
 
 >
+
+
+🎤
 
 
 {
@@ -218,17 +263,17 @@ recording
 
 ?
 
-"🔴 Recording..."
+"Stop Recording"
 
 :
 
-"🎤 Transcript"
+"Transcript"
 
 }
 
 
-
 </button>
+
 
 
 )

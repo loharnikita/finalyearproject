@@ -5,7 +5,7 @@ import { useUser } from '@clerk/nextjs';
 import { StreamCall, StreamTheme } from '@stream-io/video-react-sdk';
 import { useParams } from 'next/navigation';
 import { Loader } from 'lucide-react';
-import TranscriptRecorder from "@/components/TranscriptRecorder";
+
 import { useGetCallById } from '@/hooks/useGetCallById';
 import Alert from '@/components/Alert';
 import MeetingSetup from '@/components/MeetingSetup';
@@ -34,9 +34,7 @@ const MeetingPage = () => {
     <main className="h-screen w-full">
       <StreamCall call={call}>
         <StreamTheme>
-       <TranscriptRecorder 
-meetingId={id as string}
-/>
+     
         {!isSetupComplete ? (
           <MeetingSetup setIsSetupComplete={setIsSetupComplete} />
         ) : (

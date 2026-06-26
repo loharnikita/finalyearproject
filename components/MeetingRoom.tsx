@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
-import MeetingTranscript from "./MeetingTranscript";
+import TranscriptRecorder from "./TranscriptRecorder";
 
 import Loader from "./Loader";
 import MeetingNotes from "./MeetingNotes";
@@ -492,10 +492,8 @@ className="rounded-xl  px-4 py-2"
 
 </button>
 
-<MeetingTranscript
-
+<TranscriptRecorder
 meetingId={call.id}
-
 />
 
 
