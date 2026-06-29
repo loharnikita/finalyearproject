@@ -31,12 +31,15 @@ call?.state.createdBy?.id;
 
 useEffect(()=>{
 
-
 const getAttendance = async()=>{
 
+try{
 
 const res = await fetch(
-"/api/attendance"
+"/api/attendance",
+{
+cache:"no-store"
+}
 );
 
 
@@ -46,12 +49,34 @@ const data = await res.json();
 setUsers(data);
 
 
+}
+catch(error){
+
+console.log(
+"Attendance fetch error",
+error
+);
+
+}
+
+
 };
 
 
 if(isHost){
 
 getAttendance();
+
+
+const interval =
+setInterval(
+getAttendance,
+5000
+);
+
+
+return()=>clearInterval(interval);
+
 
 }
 
