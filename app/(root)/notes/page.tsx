@@ -3,7 +3,7 @@
 
 import {useEffect,useState} from "react";
 import { Download } from "lucide-react";
-
+import jsPDF from "jspdf";
 
 
 export default function NotesPage(){
@@ -32,27 +32,43 @@ fetch("/api/notes")
 const download=(text:string)=>{
 
 
-const blob=new Blob(
+const pdf = new jsPDF();
 
-[text],
 
-{
-type:"text/plain"
-}
 
+pdf.setFontSize(18);
+
+
+pdf.text(
+"MeetVerse Meeting Notes",
+20,
+20
 );
 
 
-const url=URL.createObjectURL(blob);
+
+pdf.setFontSize(12);
 
 
-const a=document.createElement("a");
+const lines = pdf.splitTextToSize(
+text,
+170
+);
 
-a.href=url;
 
-a.download="meeting-note.txt";
 
-a.click();
+pdf.text(
+lines,
+20,
+40
+);
+
+
+
+pdf.save(
+"Meeting_Notes.pdf"
+);
+
 
 
 };
@@ -150,11 +166,9 @@ className="flex gap-2 bg-green-600 px-4 py-2 rounded-xl"
 
 >
 
-
 <Download size={18}/>
 
-PDF/TXT
-
+PDF
 
 </button>
 
